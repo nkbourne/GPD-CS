@@ -1,0 +1,54 @@
+model:
+  base_learning_rate: 1.0e-05
+  target: sources.models.S1model.DCSNet
+  params:
+    sr: 0.25
+    hidden_dim: 64
+    block_size: 32
+    image_size: 64
+    in_channels: 1
+    stages: 12
+    prior_dim: 1
+    loss_type: l1
+    norm_type: gn
+    monitor: val/loss_mse
+    scheduler_config:
+      target: sources.lr_scheduler.LambdaWarmUpCosineScheduler
+      params:
+        verbosity_interval: 0
+        warm_up_steps: 5000
+        max_decay_steps: 200000
+        lr_start: 0.001
+        lr_max: 0.1
+        lr_min: 0.0001
+
+data:
+  target: main.DataModuleFromConfig
+  params:
+    batch_size: 32
+    num_workers: 12
+    wrap: false
+    train:
+      target: sources.data.custom.GCustomTrain
+      params:
+        training_images_list_file: datasets/train.txt
+        size: 64
+        crop_size: 64
+    validation:
+      target: sources.data.custom.GCustomTest
+      params:
+        test_images_list_file: datasets/val.txt
+        size: 64
+        crop_size: 64
+
+lightning:
+  callbacks:
+    image_logger:
+      target: main.ImageLogger
+      params:
+        batch_frequency: 2000
+        max_images: 8
+        increase_log_steps: False
+
+  trainer:
+    benchmark: True

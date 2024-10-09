@@ -1,0 +1,1 @@
+from dcs.modules.losses.contperceptual import LPIPSWithDiscriminator
